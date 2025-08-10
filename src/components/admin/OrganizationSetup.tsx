@@ -147,11 +147,40 @@ export function OrganizationSetup() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // In production, this would update the global favicon in the HTML head
-    const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-    if (favicon && globalSettings.favicon) {
-      favicon.href = globalSettings.favicon;
+    
+    // Update the favicon in the HTML head
+    if (globalSettings.favicon) {
+      // Update existing favicon links
+      const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
+      faviconLinks.forEach(link => {
+        (link as HTMLLinkElement).href = globalSettings.favicon;
+      });
+      
+      // If no favicon links exist, create them
+      if (faviconLinks.length === 0) {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.type = 'image/x-icon';
+        link.href = globalSettings.favicon;
+        document.head.appendChild(link);
+        
+        const shortcutLink = document.createElement('link');
+        shortcutLink.rel = 'shortcut icon';
+        shortcutLink.type = 'image/x-icon';
+        shortcutLink.href = globalSettings.favicon;
+        document.head.appendChild(shortcutLink);
+      }
+      
+      // Force browser to reload favicon by adding timestamp
+      const timestamp = new Date().getTime();
+      const allFaviconLinks = document.querySelectorAll('link[rel*="icon"]');
+      allFaviconLinks.forEach(link => {
+        const currentHref = (link as HTMLLinkElement).href;
+        const separator = currentHref.includes('?') ? '&' : '?';
+        (link as HTMLLinkElement).href = `${globalSettings.favicon}${separator}t=${timestamp}`;
+      });
     }
+    
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
   };
