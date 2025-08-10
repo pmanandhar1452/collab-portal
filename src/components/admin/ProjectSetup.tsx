@@ -15,24 +15,8 @@ import {
   Building2
 } from 'lucide-react';
 import { Organization } from '../../types';
-
-interface Project {
-  id: string;
-  organizationId: string;
-  name: string;
-  client: string;
-  description: string;
-  budget: number;
-  spent: number;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'completed' | 'on-hold' | 'planning';
-  teamMembers: string[];
-  hourlyBudget: number;
-  hoursSpent: number;
-  priority: 'low' | 'medium' | 'high';
-  tags: string[];
-}
+import { useOrganizations } from '../../hooks/useOrganizations';
+import { useProjects, Project } from '../../hooks/useProjects';
 
 export function ProjectSetup() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -42,143 +26,36 @@ export function ProjectSetup() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [organizationCreatedProjects, setOrganizationCreatedProjects] = useState<Project[]>([]);
 
-  const [newProject, setNewProject] = useState({
+  const { organizations, loading: orgsLoading } = useOrganizations();
+  const { 
+    projects, 
+    loading: projectsLoading, 
+    error: projectsError, 
+    createProject, 
+    updateProject, 
+    deleteProject 
+  } = useProjects();
+
+  const [newProject, setNewProject] = useState<Partial<Project>>({
     name: '',
     organizationId: '',
     client: '',
     description: '',
-    budget: '',
+    budget: 0,
+    spent: 0,
     startDate: '',
     endDate: '',
     status: 'planning' as const,
     teamMembers: [] as string[],
-    hourlyBudget: '',
+    hourlyBudget: 0,
+    hoursSpent: 0,
     priority: 'medium' as const,
     tags: [] as string[]
   });
 
-  // Mock organizations data
-  const [organizations] = useState<Organization[]>([
-    {
-      id: '1',
-      name: 'YAA Collaborator Portal',
-      email: 'admin@yaa.ai',
-      timezone: 'America/New_York',
-      currency: 'USD',
-      fiscalYearStart: '01-01',
-      paymentTerms: 30,
-      invoicePrefix: 'YAA',
-      taxRate: 8.5,
-      paymentMethods: {
-        paypal: { enabled: true, email: '', clientId: '', clientSecret: '' },
-        wise: { enabled: false, apiKey: '', profileId: '' },
-        veem: { enabled: false, apiKey: '', accountId: '' }
-      },
-      notifications: {
-        emailNotifications: true,
-        invoiceReminders: true,
-        paymentConfirmations: true,
-        weeklyReports: false
-      },
-      branding: {
-        primaryColor: '#2563eb',
-        secondaryColor: '#64748b',
-        logoUrl: '',
-        favicon: 'https://yaa.ai/favicon.ico'
-      },
-      createdAt: '2024-01-15',
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'Tech Solutions Inc',
-      email: 'admin@techsolutions.com',
-      timezone: 'America/Los_Angeles',
-      currency: 'USD',
-      fiscalYearStart: '04-01',
-      paymentTerms: 15,
-      invoicePrefix: 'TSI',
-      taxRate: 9.25,
-      paymentMethods: {
-        paypal: { enabled: false, email: '', clientId: '', clientSecret: '' },
-        wise: { enabled: true, apiKey: '', profileId: '' },
-        veem: { enabled: false, apiKey: '', accountId: '' }
-      },
-      notifications: {
-        emailNotifications: true,
-        invoiceReminders: false,
-        paymentConfirmations: true,
-        weeklyReports: true
-      },
-      branding: {
-        primaryColor: '#059669',
-        secondaryColor: '#374151',
-        logoUrl: '',
-        favicon: ''
-      },
-      createdAt: '2024-03-22',
-      isActive: true
-    }
-  ]);
-
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      organizationId: '1',
-      name: 'E-commerce Platform',
-      client: 'TechCorp Inc.',
-      description: 'Complete e-commerce solution with payment integration',
-      budget: 45000,
-      spent: 28500,
-      startDate: '2024-11-01',
-      endDate: '2025-02-15',
-      status: 'active',
-      teamMembers: ['Sarah Johnson', 'Mike Chen', 'Alex Rivera'],
-      hourlyBudget: 600,
-      hoursSpent: 380,
-      priority: 'high',
-      tags: ['web', 'ecommerce', 'react']
-    },
-    {
-      id: '2',
-      organizationId: '1',
-      name: 'Mobile App Development',
-      client: 'StartupXYZ',
-      description: 'Cross-platform mobile application',
-      budget: 32000,
-      spent: 18900,
-      startDate: '2024-12-01',
-      endDate: '2025-03-30',
-      status: 'active',
-      teamMembers: ['Emma Davis', 'James Wilson'],
-      hourlyBudget: 400,
-      hoursSpent: 245,
-      priority: 'medium',
-      tags: ['mobile', 'react-native', 'ios', 'android']
-    },
-    {
-      id: '3',
-      organizationId: '2',
-      name: 'Website Redesign',
-      client: 'Fashion Brand Co.',
-      description: 'Complete website redesign and branding',
-      budget: 18000,
-      spent: 17800,
-      startDate: '2024-10-15',
-      endDate: '2025-01-20',
-      status: 'completed',
-      teamMembers: ['Mike Chen'],
-      hourlyBudget: 240,
-      hoursSpent: 220,
-      priority: 'low',
-      tags: ['design', 'branding', 'wordpress']
-    }
-  ]);
-  
   // Function to create default project for new organization
-  const createDefaultProjectForOrganization = (organizationId: string, organizationName: string) => {
-    const defaultProject: Project = {
-      id: `${organizationId}-default-${Date.now()}`,
+  const createDefaultProjectForOrganization = async (organizationId: string, organizationName: string) => {
+    const defaultProjectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
       organizationId: organizationId,
       name: 'General Default',
       client: 'Internal',
@@ -195,8 +72,11 @@ export function ProjectSetup() {
       tags: ['default', 'general']
     };
     
-    setProjects(prevProjects => [...prevProjects, defaultProject]);
-    return defaultProject;
+    try {
+      await createProject(defaultProjectData);
+    } catch (error) {
+      console.error('Failed to create default project:', error);
+    }
   };
   
   // Expose function to parent component (in a real app, this would be handled by context or state management)
@@ -222,47 +102,56 @@ export function ProjectSetup() {
     'James Wilson'
   ];
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (newProject.name && newProject.client && newProject.budget && newProject.organizationId) {
-      const project: Project = {
-        id: Date.now().toString(),
+      const projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
         organizationId: newProject.organizationId,
         name: newProject.name,
         client: newProject.client,
         description: newProject.description,
-        budget: parseFloat(newProject.budget),
+        budget: newProject.budget,
         spent: 0,
         startDate: newProject.startDate,
         endDate: newProject.endDate,
         status: newProject.status,
         teamMembers: newProject.teamMembers,
-        hourlyBudget: parseFloat(newProject.hourlyBudget) || 0,
+        hourlyBudget: newProject.hourlyBudget,
         hoursSpent: 0,
         priority: newProject.priority,
         tags: newProject.tags
       };
 
-      setProjects([...projects, project]);
-      setNewProject({
-        name: '',
-        organizationId: '',
-        client: '',
-        description: '',
-        budget: '',
-        startDate: '',
-        endDate: '',
-        status: 'planning',
-        teamMembers: [],
-        hourlyBudget: '',
-        priority: 'medium',
-        tags: []
-      });
-      setShowCreateForm(false);
+      try {
+        await createProject(projectData);
+        setNewProject({
+          name: '',
+          organizationId: '',
+          client: '',
+          description: '',
+          budget: 0,
+          spent: 0,
+          startDate: '',
+          endDate: '',
+          status: 'planning',
+          teamMembers: [],
+          hourlyBudget: 0,
+          hoursSpent: 0,
+          priority: 'medium',
+          tags: []
+        });
+        setShowCreateForm(false);
+      } catch (error) {
+        console.error('Failed to create project:', error);
+      }
     }
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProject(id);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    }
   };
 
   const getOrganizationName = (organizationId: string) => {

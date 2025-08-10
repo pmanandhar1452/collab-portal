@@ -24,6 +24,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { Organization } from '../../types';
+import { useOrganizations } from '../../hooks/useOrganizations';
 
 export function OrganizationSetup() {
   const [activeTab, setActiveTab] = useState('list');
@@ -37,81 +38,14 @@ export function OrganizationSetup() {
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const [organizations, setOrganizations] = useState<Organization[]>([
-    {
-      id: '1',
-      name: 'YAA Collaborator Portal',
-      email: 'admin@yaa.ai',
-      phone: '+1 (555) 123-4567',
-      address: '123 Business St, Suite 100, City, State 12345',
-      website: 'https://yaa.ai',
-      logo: '',
-      timezone: 'America/New_York',
-      currency: 'USD',
-      fiscalYearStart: '01-01',
-      paymentTerms: 30,
-      invoicePrefix: 'YAA',
-      taxRate: 8.5,
-      registrationNumber: 'REG123456789',
-      bankingDetails: {
-        accountName: 'YAA Collaborator Portal',
-        accountNumber: '****1234',
-        routingNumber: '****5678',
-        bankName: 'Business Bank'
-      },
-      paymentMethods: {
-        paypal: { enabled: true, email: 'payments@yaa.ai', clientId: '****', clientSecret: '****' },
-        wise: { enabled: false, apiKey: '', profileId: '' },
-        veem: { enabled: false, apiKey: '', accountId: '' }
-      },
-      notifications: {
-        emailNotifications: true,
-        invoiceReminders: true,
-        paymentConfirmations: true,
-        weeklyReports: false
-      },
-      branding: {
-        primaryColor: '#2563eb',
-        secondaryColor: '#64748b',
-        logoUrl: ''
-      },
-      createdAt: '2024-01-15',
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'Tech Solutions Inc',
-      email: 'admin@techsolutions.com',
-      phone: '+1 (555) 987-6543',
-      address: '456 Tech Ave, Innovation District, City, State 54321',
-      website: 'https://techsolutions.com',
-      timezone: 'America/Los_Angeles',
-      currency: 'USD',
-      fiscalYearStart: '04-01',
-      paymentTerms: 15,
-      invoicePrefix: 'TSI',
-      taxRate: 9.25,
-      registrationNumber: 'REG987654321',
-      paymentMethods: {
-        paypal: { enabled: false, email: '', clientId: '', clientSecret: '' },
-        wise: { enabled: true, apiKey: '****', profileId: '****' },
-        veem: { enabled: false, apiKey: '', accountId: '' }
-      },
-      notifications: {
-        emailNotifications: true,
-        invoiceReminders: false,
-        paymentConfirmations: true,
-        weeklyReports: true
-      },
-      branding: {
-        primaryColor: '#059669',
-        secondaryColor: '#374151',
-        logoUrl: ''
-      },
-      createdAt: '2024-03-22',
-      isActive: true
-    }
-  ]);
+  const { 
+    organizations, 
+    loading, 
+    error: dbError, 
+    createOrganization, 
+    updateOrganization, 
+    deleteOrganization 
+  } = useOrganizations();
 
   const [newOrg, setNewOrg] = useState<Partial<Organization>>({
     name: '',
@@ -185,63 +119,64 @@ export function OrganizationSetup() {
     setIsSaving(false);
   };
 
-  const handleCreateOrganization = () => {
+  const handleCreateOrganization = async () => {
     if (newOrg.name && newOrg.email) {
-      const organization: Organization = {
-        id: Date.now().toString(),
-        ...newOrg as Organization,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-
-      setOrganizations([...organizations, organization]);
-      
-      // Auto-create "General Default" project for the new organization
-      // Dispatch event to create default project
-      const organizationCreatedEvent = new CustomEvent('organizationCreated', {
-        detail: {
-          organizationId: organization.id,
-          organizationName: organization.name
-        }
-      });
-      window.dispatchEvent(organizationCreatedEvent);
-      
-      setNewOrg({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        website: '',
-        timezone: 'America/New_York',
-        currency: 'USD',
-        fiscalYearStart: '01-01',
-        paymentTerms: 30,
-        invoicePrefix: '',
-        taxRate: 0,
-        registrationNumber: '',
-        paymentMethods: {
-          paypal: { enabled: false, email: '', clientId: '', clientSecret: '' },
-          wise: { enabled: false, apiKey: '', profileId: '' },
-          veem: { enabled: false, apiKey: '', accountId: '' }
-        },
-        notifications: {
-          emailNotifications: true,
-          invoiceReminders: true,
-          paymentConfirmations: true,
-          weeklyReports: false
-        },
-        branding: {
-          primaryColor: '#2563eb',
-          secondaryColor: '#64748b',
-          logoUrl: ''
-        },
-        isActive: true
-      });
-      setShowCreateForm(false);
+      try {
+        const organization = await createOrganization(newOrg);
+        
+        // Auto-create "General Default" project for the new organization
+        const organizationCreatedEvent = new CustomEvent('organizationCreated', {
+          detail: {
+            organizationId: organization.id,
+            organizationName: organization.name
+          }
+        });
+        window.dispatchEvent(organizationCreatedEvent);
+        
+        setNewOrg({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          website: '',
+          timezone: 'America/New_York',
+          currency: 'USD',
+          fiscalYearStart: '01-01',
+          paymentTerms: 30,
+          invoicePrefix: '',
+          taxRate: 0,
+          registrationNumber: '',
+          paymentMethods: {
+            paypal: { enabled: false, email: '', clientId: '', clientSecret: '' },
+            wise: { enabled: false, apiKey: '', profileId: '' },
+            veem: { enabled: false, apiKey: '', accountId: '' }
+          },
+          notifications: {
+            emailNotifications: true,
+            invoiceReminders: true,
+            paymentConfirmations: true,
+            weeklyReports: false
+          },
+          branding: {
+            primaryColor: '#2563eb',
+            secondaryColor: '#64748b',
+            logoUrl: ''
+          },
+          isActive: true
+        });
+        setShowCreateForm(false);
+      } catch (error) {
+        console.error('Failed to create organization:', error);
+      }
     }
   };
 
-  const handleDeleteOrganization = (id: string) => {
-    setOrganizations(organizations.filter(org => org.id !== id));
+  const handleDeleteOrganization = async (id: string) => {
+    try {
+      await deleteOrganization(id);
+    } catch (error) {
+      console.error('Failed to delete organization:', error);
+    }
   };
 
   const toggleSecret = (field: string) => {
