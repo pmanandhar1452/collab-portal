@@ -65,10 +65,27 @@ export function useAuth() {
     localStorage.removeItem('user');
   };
 
+  const updateUser = async (updates: Partial<User>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      // In a real app, this would make an API call to update the user
+      // For now, we'll just update the local state and localStorage
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return true;
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      return false;
+    }
+  };
+
   return {
     user,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user
   };
 }

@@ -6,7 +6,8 @@ import {
   Clock, 
   History, 
   LogOut,
-  User
+  User,
+  Settings
 } from 'lucide-react';
 import { User as UserType } from '../../types';
 import { StaffView } from '../StaffDashboard';
@@ -25,6 +26,7 @@ export function StaffNavigation({ user, activeView, onViewChange, onLogout }: St
     { id: 'requests' as StaffView, label: 'Payment Request', icon: CreditCard },
     { id: 'timesheet' as StaffView, label: 'Time Tracking', icon: Clock },
     { id: 'submissions' as StaffView, label: 'My Submissions', icon: History },
+    { id: 'settings' as StaffView, label: 'Settings', icon: Settings },
   ];
 
   return (
