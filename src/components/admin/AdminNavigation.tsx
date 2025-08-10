@@ -5,7 +5,9 @@ import {
   Users, 
   BarChart3, 
   FileBarChart, 
-  LogOut
+  LogOut,
+  Target,
+  Settings
 } from 'lucide-react';
 import { User } from '../../types';
 import { AdminView } from '../AdminDashboard';
@@ -22,8 +24,10 @@ export function AdminNavigation({ user, activeView, onViewChange, onLogout }: Ad
     { id: 'overview' as AdminView, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'payments' as AdminView, label: 'Payments', icon: CreditCard },
     { id: 'staff' as AdminView, label: 'Staff Management', icon: Users },
+    { id: 'projects' as AdminView, label: 'Project Setup', icon: Target },
     { id: 'analytics' as AdminView, label: 'Project Analytics', icon: BarChart3 },
     { id: 'reports' as AdminView, label: 'Financial Reports', icon: FileBarChart },
+    { id: 'organization' as AdminView, label: 'Organization', icon: Settings },
   ];
 
   return (

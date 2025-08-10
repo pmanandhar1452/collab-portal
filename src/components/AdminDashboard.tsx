@@ -6,13 +6,15 @@ import { PaymentManagement } from './admin/PaymentManagement';
 import { StaffManagement } from './admin/StaffManagement';
 import { ProjectAnalytics } from './admin/ProjectAnalytics';
 import { FinancialReports } from './admin/FinancialReports';
+import { ProjectSetup } from './admin/ProjectSetup';
+import { OrganizationSetup } from './admin/OrganizationSetup';
 
 interface AdminDashboardProps {
   user: User;
   onLogout: () => void;
 }
 
-export type AdminView = 'overview' | 'payments' | 'staff' | 'analytics' | 'reports';
+export type AdminView = 'overview' | 'payments' | 'staff' | 'analytics' | 'reports' | 'projects' | 'organization';
 
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [activeView, setActiveView] = useState<AdminView>('overview');
@@ -29,6 +31,10 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
         return <ProjectAnalytics />;
       case 'reports':
         return <FinancialReports />;
+      case 'projects':
+        return <ProjectSetup />;
+      case 'organization':
+        return <OrganizationSetup />;
       default:
         return <AdminOverview />;
     }
