@@ -8,6 +8,7 @@ import {
   LogOut,
   Target,
   Settings,
+  Monitor,
   User as UserIcon
 } from 'lucide-react';
 import { User } from '../../types';
@@ -29,6 +30,7 @@ export function AdminNavigation({ user, activeView, onViewChange, onLogout }: Ad
     { id: 'analytics' as AdminView, label: 'Project Analytics', icon: BarChart3 },
     { id: 'reports' as AdminView, label: 'Financial Reports', icon: FileBarChart },
     { id: 'organization' as AdminView, label: 'Organization', icon: Settings },
+    { id: 'global' as AdminView, label: 'Global Settings', icon: Monitor },
     { id: 'settings' as AdminView, label: 'User Settings', icon: UserIcon },
   ];
 

@@ -28,12 +28,6 @@ import { useOrganizations } from '../../hooks/useOrganizations';
 
 export function OrganizationSetup() {
   const [activeTab, setActiveTab] = useState('list');
-  const [globalSettings, setGlobalSettings] = useState({
-    favicon: 'https://yaa.ai/favicon.ico',
-    siteName: 'Collaborator Portal'
-  });
-  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
-  const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -78,46 +72,6 @@ export function OrganizationSetup() {
     },
     isActive: true
   });
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    
-    // Update the favicon in the HTML head
-    if (globalSettings.favicon) {
-      // Update existing favicon links
-      const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
-      faviconLinks.forEach(link => {
-        (link as HTMLLinkElement).href = globalSettings.favicon;
-      });
-      
-      // If no favicon links exist, create them
-      if (faviconLinks.length === 0) {
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.type = 'image/x-icon';
-        link.href = globalSettings.favicon;
-        document.head.appendChild(link);
-        
-        const shortcutLink = document.createElement('link');
-        shortcutLink.rel = 'shortcut icon';
-        shortcutLink.type = 'image/x-icon';
-        shortcutLink.href = globalSettings.favicon;
-        document.head.appendChild(shortcutLink);
-      }
-      
-      // Force browser to reload favicon by adding timestamp
-      const timestamp = new Date().getTime();
-      const allFaviconLinks = document.querySelectorAll('link[rel*="icon"]');
-      allFaviconLinks.forEach(link => {
-        const currentHref = (link as HTMLLinkElement).href;
-        const separator = currentHref.includes('?') ? '&' : '?';
-        (link as HTMLLinkElement).href = `${globalSettings.favicon}${separator}t=${timestamp}`;
-      });
-    }
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-  };
 
   const handleCreateOrganization = async () => {
     if (newOrg.name && newOrg.email) {
@@ -179,19 +133,13 @@ export function OrganizationSetup() {
     }
   };
 
-  const toggleSecret = (field: string) => {
-    setShowSecrets(prev => ({ ...prev, [field]: !prev[field] }));
-  };
-
   const filteredOrganizations = organizations.filter(org =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     org.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const tabs = [
-    { id: 'list', label: 'Organizations', icon: Building2 },
-    { id: 'create', label: 'Create New', icon: Plus },
-    { id: 'global', label: 'Global Settings', icon: Monitor }
+    { id: 'list', label: 'Organizations', icon: Building2 }
   ];
 
   const timezones = [
@@ -220,22 +168,13 @@ export function OrganizationSetup() {
           <h1 className="text-3xl font-bold text-gray-900">Organization Management</h1>
           <p className="text-gray-600 mt-2">Manage multiple organizations and their settings.</p>
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setActiveTab('global')}
-            className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-medium flex items-center space-x-2"
-          >
-            <Monitor className="w-5 h-5" />
-            <span>Global Settings</span>
-          </button>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>New Organization</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center space-x-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>New Organization</span>
+        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -264,8 +203,7 @@ export function OrganizationSetup() {
       </div>
 
       {/* Stats Cards */}
-      {activeTab === 'list' && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -311,12 +249,10 @@ export function OrganizationSetup() {
             <CreditCard className="w-8 h-8 text-amber-500" />
           </div>
         </div>
-        </div>
-      )}
+      </div>
 
       {/* Search */}
-      {activeTab === 'list' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -327,121 +263,10 @@ export function OrganizationSetup() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           />
         </div>
-        </div>
-      )}
-
-      {/* Global Settings Tab */}
-      {activeTab === 'global' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Global Portal Settings</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Site Name
-                </label>
-                <input
-                  type="text"
-                  value={globalSettings.siteName}
-                  onChange={(e) => setGlobalSettings({ ...globalSettings, siteName: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                  placeholder="Enter site name"
-                />
-                <p className="text-xs text-gray-500 mt-1">This appears in the browser tab and page titles</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Favicon
-                </label>
-                <div className="space-y-4">
-                  {globalSettings.favicon ? (
-                    <div className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-                      <img
-                        src={globalSettings.favicon}
-                        alt="Current favicon"
-                        className="w-8 h-8"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Current Favicon</p>
-                        <p className="text-xs text-gray-500 break-all">{globalSettings.favicon}</p>
-                      </div>
-                      <button
-                        onClick={() => setGlobalSettings({ ...globalSettings, favicon: '' })}
-                        className="text-red-600 hover:text-red-700 p-1 rounded"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                      <input
-                        type="file"
-                        id="favicon-upload"
-                        accept=".ico,.png,.jpg,.jpeg,.svg"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            // In production, this would upload to cloud storage
-                            const url = URL.createObjectURL(file);
-                            setGlobalSettings({ ...globalSettings, favicon: url });
-                          }
-                        }}
-                      />
-                      <label htmlFor="favicon-upload" className="cursor-pointer">
-                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600 mb-2">Click to upload favicon</p>
-                        <p className="text-sm text-gray-500">
-                          ICO, PNG, JPG, SVG (recommended: 32x32px)
-                        </p>
-                      </label>
-                    </div>
-                  )}
-                  <input
-                    type="url"
-                    value={globalSettings.favicon}
-                    onChange={(e) => setGlobalSettings({ ...globalSettings, favicon: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    placeholder="Or enter favicon URL directly"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  The favicon appears in browser tabs and bookmarks for the entire portal
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-8">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center space-x-2 disabled:opacity-50"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    <span>Save Global Settings</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Create Organization Form */}
-      {showCreateForm && activeTab === 'list' && (
+      {showCreateForm && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Create New Organization</h2>
@@ -568,8 +393,7 @@ export function OrganizationSetup() {
       )}
 
       {/* Organizations Table */}
-      {activeTab === 'list' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -681,8 +505,7 @@ export function OrganizationSetup() {
             </tbody>
           </table>
         </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
