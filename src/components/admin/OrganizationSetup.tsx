@@ -389,6 +389,69 @@ export function OrganizationSetup() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                Favicon
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  id="new-favicon-upload"
+                  accept=".ico,.png,.jpg,.jpeg,.svg"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      // In a real app, you would upload this to your storage service
+                      const fakeUrl = `https://example.com/favicons/${file.name}`;
+                      setNewOrg({
+                        ...newOrg,
+                        branding: {
+                          ...newOrg.branding!,
+                          favicon: fakeUrl
+                        }
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor="new-favicon-upload" className="cursor-pointer">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-1">
+                    {newOrg.branding?.favicon ? 'Change favicon' : 'Upload favicon'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    ICO, PNG, JPG, SVG (max 2MB, recommended 32x32px)
+                  </p>
+                </label>
+                {newOrg.branding?.favicon && (
+                  <div className="mt-3 flex items-center justify-center space-x-2">
+                    <img 
+                      src={newOrg.branding.favicon} 
+                      alt="Favicon preview" 
+                      className="w-6 h-6"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <span className="text-xs text-gray-600">Selected favicon</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewOrg({
+                        ...newOrg,
+                        branding: {
+                          ...newOrg.branding!,
+                          favicon: ''
+                        }
+                      })}
+                      className="text-red-600 hover:text-red-700 text-xs"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Currency
               </label>
               <select
