@@ -13,9 +13,6 @@ import {
   Shield,
   Building2,
   Target
-  Shield,
-  Building2,
-  Target
 } from 'lucide-react';
 
 interface StaffMember {
@@ -56,21 +53,6 @@ export function StaffManagement() {
     { id: '3', name: 'Website Redesign', organizationId: '2' },
     { id: '4', name: 'CRM Integration', organizationId: '2' }
   ];
-  const [showAccessModal, setShowAccessModal] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-
-  // Mock organizations and projects data
-  const organizations = [
-    { id: '1', name: 'YAA Collaborator Portal' },
-    { id: '2', name: 'Tech Solutions Inc' }
-  ];
-
-  const projects = [
-    { id: '1', name: 'E-commerce Platform', organizationId: '1' },
-    { id: '2', name: 'Mobile App Development', organizationId: '1' },
-    { id: '3', name: 'Website Redesign', organizationId: '2' },
-    { id: '4', name: 'CRM Integration', organizationId: '2' }
-  ];
 
   const staffMembers: StaffMember[] = [
     {
@@ -86,11 +68,6 @@ export function StaffManagement() {
       joinedAt: '2024-03-15',
       status: 'active',
       avatar: 'https://images.pexels.com/photos/1239288/pexels-photo-1239288.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      accessControl: {
-        organizations: ['1'],
-        projects: ['1', '2'],
-        restrictToAssignedOnly: true
-      }
       accessControl: {
         organizations: ['1'],
         projects: ['1', '2'],
@@ -115,11 +92,6 @@ export function StaffManagement() {
         projects: [],
         restrictToAssignedOnly: false
       }
-      accessControl: {
-        organizations: ['1', '2'],
-        projects: [],
-        restrictToAssignedOnly: false
-      }
     },
     {
       id: '3',
@@ -134,11 +106,6 @@ export function StaffManagement() {
       joinedAt: '2024-01-10',
       status: 'active',
       avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      accessControl: {
-        organizations: ['1', '2'],
-        projects: [],
-        restrictToAssignedOnly: false
-      }
       accessControl: {
         organizations: ['1', '2'],
         projects: [],
@@ -163,11 +130,6 @@ export function StaffManagement() {
         projects: ['1'],
         restrictToAssignedOnly: true
       }
-      accessControl: {
-        organizations: ['1'],
-        projects: ['1'],
-        restrictToAssignedOnly: true
-      }
     },
     {
       id: '5',
@@ -182,11 +144,6 @@ export function StaffManagement() {
       joinedAt: '2024-09-15',
       status: 'inactive',
       avatar: 'https://images.pexels.com/photos/1552058/pexels-photo-1552058.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      accessControl: {
-        organizations: ['2'],
-        projects: ['3'],
-        restrictToAssignedOnly: true
-      }
       accessControl: {
         organizations: ['2'],
         projects: ['3'],
@@ -413,14 +370,6 @@ export function StaffManagement() {
                       </p>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{getAccessSummary(staff)}</p>
-                      <p className="text-xs text-gray-500">
-                        {staff.accessControl?.restrictToAssignedOnly ? 'Restricted' : 'Unrestricted'}
-                      </p>
-                    </div>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                       staff.status === 'active'
@@ -432,13 +381,6 @@ export function StaffManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => handleManageAccess(staff)}
-                        className="text-purple-600 hover:text-purple-700 p-1 rounded"
-                        title="Manage Access"
-                      >
-                        <Shield className="w-4 h-4" />
-                      </button>
                       <button 
                         onClick={() => handleManageAccess(staff)}
                         className="text-purple-600 hover:text-purple-700 p-1 rounded"

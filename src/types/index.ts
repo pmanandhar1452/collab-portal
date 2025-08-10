@@ -30,6 +30,10 @@ const getAvailableProjects = (user: User) => {
       // Check if user has access to the specific project (empty array means all projects in allowed orgs)
       const hasProjectAccess = user.accessControl?.projects.length === 0 || 
                               user.accessControl?.projects.includes(project.id);
+    }
+    )
+  }
+}
 export function InvoiceUpload({ user }: InvoiceUploadProps) {
   const [formData, setFormData] = useState({
     title: '',
