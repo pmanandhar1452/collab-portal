@@ -42,7 +42,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             <div className="bg-blue-600 w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center">
               <LogIn className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Contractor Portal</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Collaborator Portal</h1>
             <p className="text-gray-600 mt-2">Sign in to your account</p>
           </div>
 
