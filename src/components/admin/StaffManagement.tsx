@@ -9,7 +9,10 @@ import {
   Phone,
   Calendar,
   DollarSign,
-  BarChart3
+  BarChart3,
+  Shield,
+  Building2,
+  Target
 } from 'lucide-react';
 
 interface StaffMember {
@@ -30,6 +33,21 @@ interface StaffMember {
 export function StaffManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+
+  // Mock organizations and projects data
+  const organizations = [
+    { id: '1', name: 'YAA Collaborator Portal' },
+    { id: '2', name: 'Tech Solutions Inc' }
+  ];
+
+  const projects = [
+    { id: '1', name: 'E-commerce Platform', organizationId: '1' },
+    { id: '2', name: 'Mobile App Development', organizationId: '1' },
+    { id: '3', name: 'Website Redesign', organizationId: '2' },
+    { id: '4', name: 'CRM Integration', organizationId: '2' }
+  ];
 
   const staffMembers: StaffMember[] = [
     {
@@ -44,7 +62,12 @@ export function StaffManagement() {
       hoursThisMonth: 156,
       joinedAt: '2024-03-15',
       status: 'active',
-      avatar: 'https://images.pexels.com/photos/1239288/pexels-photo-1239288.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      avatar: 'https://images.pexels.com/photos/1239288/pexels-photo-1239288.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['1'],
+        projects: ['1', '2'],
+        restrictToAssignedOnly: true
+      }
     },
     {
       id: '2',
@@ -58,7 +81,12 @@ export function StaffManagement() {
       hoursThisMonth: 128,
       joinedAt: '2024-05-22',
       status: 'active',
-      avatar: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      avatar: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['1', '2'],
+        projects: [],
+        restrictToAssignedOnly: false
+      }
     },
     {
       id: '3',
@@ -72,7 +100,12 @@ export function StaffManagement() {
       hoursThisMonth: 168,
       joinedAt: '2024-01-10',
       status: 'active',
-      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['1', '2'],
+        projects: [],
+        restrictToAssignedOnly: false
+      }
     },
     {
       id: '4',
@@ -86,7 +119,12 @@ export function StaffManagement() {
       hoursThisMonth: 112,
       joinedAt: '2024-07-08',
       status: 'active',
-      avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['1'],
+        projects: ['1'],
+        restrictToAssignedOnly: true
+      }
     },
     {
       id: '5',
@@ -100,7 +138,12 @@ export function StaffManagement() {
       hoursThisMonth: 80,
       joinedAt: '2024-09-15',
       status: 'inactive',
-      avatar: 'https://images.pexels.com/photos/1552058/pexels-photo-1552058.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      avatar: 'https://images.pexels.com/photos/1552058/pexels-photo-1552058.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['2'],
+        projects: ['3'],
+        restrictToAssignedOnly: true
+      }
     }
   ];
 
@@ -118,7 +161,22 @@ export function StaffManagement() {
     active: staffMembers.filter(s => s.status === 'active').length,
     totalEarned: staffMembers.reduce((sum, s) => sum + s.totalEarned, 0),
     avgHourlyRate: Math.round(staffMembers.reduce((sum, s) => sum + s.hourlyRate, 0) / staffMembers.length),
-    hoursThisMonth: staffMembers.reduce((sum, s) => sum + s.hoursThisMonth, 0)
+    hoursThisMonth: staffMembers.reduce((sum, s) => sum + s.hoursThisMonth, 0),
+    restricted: staffMembers.filter(s => s.accessControl?.restrictToAssignedOnly).length
+  };
+
+  const handleManageAccess = (staff: StaffMember) => {
+    setSelectedStaff(staff);
+    setShowAccessModal(true);
+  };
+
+  const getAccessSummary = (staff: StaffMember) => {
+    if (!staff.accessControl?.restrictToAssignedOnly) {
+      return 'Full Access';
+    }
+    const orgCount = staff.accessControl.organizations.length;
+    const projectCount = staff.accessControl.projects.length;
+    return `${orgCount} org${orgCount !== 1 ? 's' : ''}, ${projectCount} project${projectCount !== 1 ? 's' : ''}`;
   };
 
   return (
@@ -175,6 +233,16 @@ export function StaffManagement() {
             <Calendar className="w-8 h-8 text-amber-500" />
           </div>
         </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-red-600">{totalStats.restricted}</p>
+              <p className="text-sm font-medium text-gray-600">Restricted Access</p>
+            </div>
+            <Shield className="w-8 h-8 text-red-500" />
+          </div>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -227,6 +295,9 @@ export function StaffManagement() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   This Month
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Access Control
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -286,6 +357,14 @@ export function StaffManagement() {
                       </p>
                     </div>
                   </td>
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{getAccessSummary(staff)}</p>
+                      <p className="text-xs text-gray-500">
+                        {staff.accessControl?.restrictToAssignedOnly ? 'Restricted' : 'Unrestricted'}
+                      </p>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                       staff.status === 'active'
@@ -297,6 +376,13 @@ export function StaffManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => handleManageAccess(staff)}
+                        className="text-purple-600 hover:text-purple-700 p-1 rounded"
+                        title="Manage Access"
+                      >
+                        <Shield className="w-4 h-4" />
+                      </button>
                       <button className="text-blue-600 hover:text-blue-700 p-1 rounded">
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -311,6 +397,138 @@ export function StaffManagement() {
           </table>
         </div>
       </div>
+
+      {/* Access Control Modal */}
+      {showAccessModal && selectedStaff && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Access Control</h2>
+                  <p className="text-gray-600 mt-1">{selectedStaff.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowAccessModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Access Mode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Access Mode
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="accessMode"
+                      checked={!selectedStaff.accessControl?.restrictToAssignedOnly}
+                      className="mt-1 mr-3"
+                      readOnly
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">Full Access</p>
+                      <p className="text-sm text-gray-600">Can access all organizations and projects</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="accessMode"
+                      checked={selectedStaff.accessControl?.restrictToAssignedOnly}
+                      className="mt-1 mr-3"
+                      readOnly
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">Restricted Access</p>
+                      <p className="text-sm text-gray-600">Can only access assigned organizations and projects</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Organization Access */}
+              {selectedStaff.accessControl?.restrictToAssignedOnly && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <Building2 className="w-4 h-4 inline mr-1" />
+                      Allowed Organizations
+                    </label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                      {organizations.map((org) => (
+                        <label key={org.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedStaff.accessControl?.organizations.includes(org.id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                            readOnly
+                          />
+                          <span className="text-sm text-gray-900">{org.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <Target className="w-4 h-4 inline mr-1" />
+                      Allowed Projects
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                      {projects.map((project) => {
+                        const org = organizations.find(o => o.id === project.organizationId);
+                        const isOrgAllowed = selectedStaff.accessControl?.organizations.includes(project.organizationId);
+                        return (
+                          <label key={project.id} className={`flex items-center space-x-2 ${!isOrgAllowed ? 'opacity-50' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={selectedStaff.accessControl?.projects.includes(project.id)}
+                              disabled={!isOrgAllowed}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                              readOnly
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm text-gray-900">{project.name}</span>
+                              <span className="text-xs text-gray-500 ml-2">({org?.name})</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Projects are only available if their organization is also selected
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-4">
+              <button
+                onClick={() => setShowAccessModal(false)}
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // In a real app, this would save the changes
+                  setShowAccessModal(false);
+                }}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

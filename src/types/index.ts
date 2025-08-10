@@ -5,6 +5,11 @@ export interface User {
   role: 'admin' | 'staff';
   avatar?: string;
   department?: string;
+  accessControl?: {
+    organizations: string[]; // Array of organization IDs the user can access
+    projects: string[]; // Array of project IDs the user can access
+    restrictToAssignedOnly: boolean; // If true, user can only see assigned orgs/projects
+  };
 }
 
 export interface Invoice {
