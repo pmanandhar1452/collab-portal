@@ -158,6 +158,17 @@ export function OrganizationSetup() {
       };
 
       setOrganizations([...organizations, organization]);
+      
+      // Auto-create "General Default" project for the new organization
+      // Dispatch event to create default project
+      const organizationCreatedEvent = new CustomEvent('organizationCreated', {
+        detail: {
+          organizationId: organization.id,
+          organizationName: organization.name
+        }
+      });
+      window.dispatchEvent(organizationCreatedEvent);
+      
       setNewOrg({
         name: '',
         email: '',

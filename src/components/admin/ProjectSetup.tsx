@@ -40,6 +40,7 @@ export function ProjectSetup() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [organizationFilter, setOrganizationFilter] = useState('all');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [organizationCreatedProjects, setOrganizationCreatedProjects] = useState<Project[]>([]);
 
   const [newProject, setNewProject] = useState({
     name: '',
@@ -173,6 +174,45 @@ export function ProjectSetup() {
       tags: ['design', 'branding', 'wordpress']
     }
   ]);
+  
+  // Function to create default project for new organization
+  const createDefaultProjectForOrganization = (organizationId: string, organizationName: string) => {
+    const defaultProject: Project = {
+      id: `${organizationId}-default-${Date.now()}`,
+      organizationId: organizationId,
+      name: 'General Default',
+      client: 'Internal',
+      description: `Default project for general tasks and miscellaneous work for ${organizationName}`,
+      budget: 10000,
+      spent: 0,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+      status: 'active',
+      teamMembers: [],
+      hourlyBudget: 500,
+      hoursSpent: 0,
+      priority: 'medium',
+      tags: ['default', 'general']
+    };
+    
+    setProjects(prevProjects => [...prevProjects, defaultProject]);
+    return defaultProject;
+  };
+  
+  // Expose function to parent component (in a real app, this would be handled by context or state management)
+  React.useEffect(() => {
+    // Listen for organization creation events
+    const handleOrganizationCreated = (event: CustomEvent) => {
+      const { organizationId, organizationName } = event.detail;
+      createDefaultProjectForOrganization(organizationId, organizationName);
+    };
+    
+    window.addEventListener('organizationCreated', handleOrganizationCreated as EventListener);
+    
+    return () => {
+      window.removeEventListener('organizationCreated', handleOrganizationCreated as EventListener);
+    };
+  }, []);
 
   const availableTeamMembers = [
     'Sarah Johnson',
