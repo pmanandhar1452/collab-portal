@@ -5,10 +5,10 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { useAuth } from './hooks/useAuth';
 
 function App() {
-  const { user, login, logout, isAuthenticated } = useAuth();
+  const { user, login, signInWithGoogle, logout, loading, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <LoginForm onLogin={login} />;
+    return <LoginForm onLogin={login} onGoogleSignIn={signInWithGoogle} loading={loading} />;
   }
 
   return (

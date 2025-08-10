@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Chrome } from 'lucide-react';
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
+  onGoogleSignIn: () => Promise<void>;
+  loading: boolean;
 }
 
-export function LoginForm({ onLogin }: LoginFormProps) {
+export function LoginForm({ onLogin, onGoogleSignIn, loading }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError('');
 
     try {
@@ -25,10 +27,18 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      await onGoogleSignIn();
+    } catch (err) {
+      setError('Failed to sign in with Google. Please try again.');
+    }
+  };
   const demoCredentials = [
     { role: 'Admin', email: 'admin@company.com', password: 'admin123' },
     { role: 'Staff', email: 'sarah@company.com', password: 'staff123' }
@@ -46,6 +56,30 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             <p className="text-gray-600 mt-2">Sign in to your account</p>
           </div>
 
+          {/* Google Sign In Button */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="w-full mb-6 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {loading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+            ) : (
+              <>
+                <Chrome className="w-5 h-5" />
+                <span>Continue with Google</span>
+              </>
+            )}
+          </button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -94,10 +128,10 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || loading}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
