@@ -13,6 +13,9 @@ import {
   Shield,
   Building2,
   Target
+  Shield,
+  Building2,
+  Target
 } from 'lucide-react';
 
 interface StaffMember {
@@ -28,11 +31,31 @@ interface StaffMember {
   joinedAt: string;
   status: 'active' | 'inactive';
   avatar: string;
+  accessControl?: {
+    organizations: string[];
+    projects: string[];
+    restrictToAssignedOnly: boolean;
+  };
 }
 
 export function StaffManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+
+  // Mock organizations and projects data
+  const organizations = [
+    { id: '1', name: 'YAA Collaborator Portal' },
+    { id: '2', name: 'Tech Solutions Inc' }
+  ];
+
+  const projects = [
+    { id: '1', name: 'E-commerce Platform', organizationId: '1' },
+    { id: '2', name: 'Mobile App Development', organizationId: '1' },
+    { id: '3', name: 'Website Redesign', organizationId: '2' },
+    { id: '4', name: 'CRM Integration', organizationId: '2' }
+  ];
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
@@ -68,6 +91,11 @@ export function StaffManagement() {
         projects: ['1', '2'],
         restrictToAssignedOnly: true
       }
+      accessControl: {
+        organizations: ['1'],
+        projects: ['1', '2'],
+        restrictToAssignedOnly: true
+      }
     },
     {
       id: '2',
@@ -82,6 +110,11 @@ export function StaffManagement() {
       joinedAt: '2024-05-22',
       status: 'active',
       avatar: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['1', '2'],
+        projects: [],
+        restrictToAssignedOnly: false
+      }
       accessControl: {
         organizations: ['1', '2'],
         projects: [],
@@ -106,6 +139,11 @@ export function StaffManagement() {
         projects: [],
         restrictToAssignedOnly: false
       }
+      accessControl: {
+        organizations: ['1', '2'],
+        projects: [],
+        restrictToAssignedOnly: false
+      }
     },
     {
       id: '4',
@@ -125,6 +163,11 @@ export function StaffManagement() {
         projects: ['1'],
         restrictToAssignedOnly: true
       }
+      accessControl: {
+        organizations: ['1'],
+        projects: ['1'],
+        restrictToAssignedOnly: true
+      }
     },
     {
       id: '5',
@@ -139,6 +182,11 @@ export function StaffManagement() {
       joinedAt: '2024-09-15',
       status: 'inactive',
       avatar: 'https://images.pexels.com/photos/1552058/pexels-photo-1552058.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      accessControl: {
+        organizations: ['2'],
+        projects: ['3'],
+        restrictToAssignedOnly: true
+      }
       accessControl: {
         organizations: ['2'],
         projects: ['3'],

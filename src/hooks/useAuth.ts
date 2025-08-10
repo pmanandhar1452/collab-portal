@@ -24,6 +24,11 @@ const MOCK_USERS: (User & { password: string })[] = [
       projects: ['1', '2'], // Only access to specific projects
       restrictToAssignedOnly: true
     }
+    accessControl: {
+      organizations: ['1'], // Only access to YAA Collaborator Portal
+      projects: ['1', '2'], // Only access to specific projects
+      restrictToAssignedOnly: true
+    }
   },
   {
     id: '3',
@@ -33,6 +38,11 @@ const MOCK_USERS: (User & { password: string })[] = [
     role: 'staff',
     department: 'Design',
     avatar: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+    accessControl: {
+      organizations: ['1', '2'], // Access to both organizations
+      projects: [], // Empty means access to all projects in allowed organizations
+      restrictToAssignedOnly: false
+    }
     accessControl: {
       organizations: ['1', '2'], // Access to both organizations
       projects: [], // Empty means access to all projects in allowed organizations
