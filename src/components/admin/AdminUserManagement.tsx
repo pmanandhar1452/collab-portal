@@ -36,7 +36,8 @@ export function AdminUserManagement() {
     loading, 
     createStaffMember, 
     updateStaffMember, 
-    deleteStaffMember 
+    deleteStaffMember,
+    refetch
   } = useStaffMembers();
 
   const filteredUsers = staffMembers.filter(user =>
@@ -68,6 +69,19 @@ export function AdminUserManagement() {
     }
 
     try {
+      // Check if user already exists in staff_members table
+      const { data: existingStaff, error: checkError } = await supabase
+        .from('staff_members')
+        .select('*')
+        .eq('email', newAdminData.email)
+        .single();
+
+      if (existingStaff) {
+        setError('A user with this email already exists in the system');
+        setIsCreating(false);
+        return;
+      }
+
       // First create the user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newAdminData.email,
@@ -79,30 +93,88 @@ export function AdminUserManagement() {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        if (authError.message.includes('already registered')) {
+          // User exists in auth but not in staff_members, let's try to link them
+          const { data: authUser, error: getUserError } = await supabase.auth.signInWithPassword({
+            email: newAdminData.email,
+            password: newAdminData.password
+          });
+          
+          if (authUser.user) {
+            // Create staff member record for existing auth user
+            const adminData = {
+              user_id: authUser.user.id,
+              name: newAdminData.name,
+              email: newAdminData.email,
+              phone: '',
+              department: 'Administration',
+              role: 'admin',
+              hourly_rate: 0,
+              total_earned: 0,
+              hours_this_month: 0,
+              status: 'active',
+              avatar: '',
+              access_control: {
+                organizations: [],
+                projects: [],
+                restrictToAssignedOnly: false
+              },
+              joined_at: new Date().toISOString().split('T')[0]
+            };
 
-      // Then create the staff member record
-      const adminData: Omit<StaffMember, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId: authData.user?.id,
-        name: newAdminData.name,
-        email: newAdminData.email,
-        phone: '',
-        department: 'Administration',
-        role: 'admin',
-        hourlyRate: 0,
-        totalEarned: 0,
-        hoursThisMonth: 0,
-        status: 'active' as const,
-        avatar: '',
-        accessControl: {
-          organizations: [],
-          projects: [],
-          restrictToAssignedOnly: false
-        },
-        joinedAt: new Date().toISOString().split('T')[0]
-      };
+            const { error: createError } = await supabase
+              .from('staff_members')
+              .insert([adminData]);
 
-      await createStaffMember(adminData);
+            if (createError) {
+              console.error('Staff creation error:', createError);
+              throw new Error('Failed to create staff member record');
+            }
+
+            // Sign out the temporary session
+            await supabase.auth.signOut();
+          } else {
+            throw new Error('User exists in auth but cannot be accessed');
+          }
+        } else {
+          throw authError;
+        }
+      } else if (authData.user) {
+        // New user created successfully, create staff member record
+        const adminData = {
+          user_id: authData.user.id,
+          name: newAdminData.name,
+          email: newAdminData.email,
+          phone: '',
+          department: 'Administration',
+          role: 'admin',
+          hourly_rate: 0,
+          total_earned: 0,
+          hours_this_month: 0,
+          status: 'active',
+          avatar: '',
+          access_control: {
+            organizations: [],
+            projects: [],
+            restrictToAssignedOnly: false
+          },
+          joined_at: new Date().toISOString().split('T')[0]
+        };
+
+        const { error: createError } = await supabase
+          .from('staff_members')
+          .insert([adminData]);
+
+        if (createError) {
+          console.error('Staff creation error:', createError);
+          throw new Error('Failed to create staff member record');
+        }
+      }
+
+      // Refresh the staff members list
+      await refetch();
       
       setSuccess('Admin user created successfully!');
       setNewAdminData({
@@ -154,6 +226,23 @@ export function AdminUserManagement() {
     }
   };
 
+  // Add a function to sync orphaned auth users
+  const handleSyncUsers = async () => {
+    setError('');
+    setSuccess('');
+    
+    try {
+      // This would require admin privileges to list all auth users
+      // For now, we'll just refresh the staff members list
+      await refetch();
+      setSuccess('User list refreshed');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError('Failed to sync users');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -161,13 +250,22 @@ export function AdminUserManagement() {
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600 mt-2">Manage user accounts and administrative privileges.</p>
         </div>
-        <button
-          onClick={() => setShowCreateAdmin(true)}
-          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-medium flex items-center space-x-2"
-        >
-          <Crown className="w-5 h-5" />
-          <span>Create Admin</span>
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleSyncUsers}
+            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 font-medium flex items-center space-x-2"
+          >
+            <Users className="w-5 h-5" />
+            <span>Refresh</span>
+          </button>
+          <button
+            onClick={() => setShowCreateAdmin(true)}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-medium flex items-center space-x-2"
+          >
+            <Crown className="w-5 h-5" />
+            <span>Create Admin</span>
+          </button>
+        </div>
       </div>
 
       {/* Success/Error Messages */}
