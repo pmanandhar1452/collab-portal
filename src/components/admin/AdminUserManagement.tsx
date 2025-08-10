@@ -14,6 +14,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useStaffMembers } from '../../hooks/useStaffMembers';
+import { supabase } from '../../lib/supabase';
 
 export function AdminUserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,7 +68,22 @@ export function AdminUserManagement() {
     }
 
     try {
-      const adminData = {
+      // First create the user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newAdminData.email,
+        password: newAdminData.password,
+        options: {
+          data: {
+            full_name: newAdminData.name
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Then create the staff member record
+      const adminData: Omit<StaffMember, 'id' | 'createdAt' | 'updatedAt'> = {
+        userId: authData.user?.id,
         name: newAdminData.name,
         email: newAdminData.email,
         phone: '',
@@ -100,7 +116,8 @@ export function AdminUserManagement() {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to create admin user. Please try again.');
+      console.error('Admin creation error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create admin user. Please try again.');
     } finally {
       setIsCreating(false);
     }
