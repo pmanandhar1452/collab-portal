@@ -413,6 +413,14 @@ export function StaffManagement() {
                       </p>
                     </div>
                   </td>
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{getAccessSummary(staff)}</p>
+                      <p className="text-xs text-gray-500">
+                        {staff.accessControl?.restrictToAssignedOnly ? 'Restricted' : 'Unrestricted'}
+                      </p>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                       staff.status === 'active'
@@ -424,6 +432,13 @@ export function StaffManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => handleManageAccess(staff)}
+                        className="text-purple-600 hover:text-purple-700 p-1 rounded"
+                        title="Manage Access"
+                      >
+                        <Shield className="w-4 h-4" />
+                      </button>
                       <button 
                         onClick={() => handleManageAccess(staff)}
                         className="text-purple-600 hover:text-purple-700 p-1 rounded"
