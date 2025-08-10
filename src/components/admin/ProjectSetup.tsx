@@ -11,11 +11,14 @@ import {
   CheckCircle,
   Clock,
   Search,
-  Filter
+  Filter,
+  Building2
 } from 'lucide-react';
+import { Organization } from '../../types';
 
 interface Project {
   id: string;
+  organizationId: string;
   name: string;
   client: string;
   description: string;
@@ -35,10 +38,12 @@ export function ProjectSetup() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [organizationFilter, setOrganizationFilter] = useState('all');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   const [newProject, setNewProject] = useState({
     name: '',
+    organizationId: '',
     client: '',
     description: '',
     budget: '',
@@ -51,9 +56,74 @@ export function ProjectSetup() {
     tags: [] as string[]
   });
 
+  // Mock organizations data
+  const [organizations] = useState<Organization[]>([
+    {
+      id: '1',
+      name: 'YAA Collaborator Portal',
+      email: 'admin@yaa.ai',
+      timezone: 'America/New_York',
+      currency: 'USD',
+      fiscalYearStart: '01-01',
+      paymentTerms: 30,
+      invoicePrefix: 'YAA',
+      taxRate: 8.5,
+      paymentMethods: {
+        paypal: { enabled: true, email: '', clientId: '', clientSecret: '' },
+        wise: { enabled: false, apiKey: '', profileId: '' },
+        veem: { enabled: false, apiKey: '', accountId: '' }
+      },
+      notifications: {
+        emailNotifications: true,
+        invoiceReminders: true,
+        paymentConfirmations: true,
+        weeklyReports: false
+      },
+      branding: {
+        primaryColor: '#2563eb',
+        secondaryColor: '#64748b',
+        logoUrl: '',
+        favicon: 'https://yaa.ai/favicon.ico'
+      },
+      createdAt: '2024-01-15',
+      isActive: true
+    },
+    {
+      id: '2',
+      name: 'Tech Solutions Inc',
+      email: 'admin@techsolutions.com',
+      timezone: 'America/Los_Angeles',
+      currency: 'USD',
+      fiscalYearStart: '04-01',
+      paymentTerms: 15,
+      invoicePrefix: 'TSI',
+      taxRate: 9.25,
+      paymentMethods: {
+        paypal: { enabled: false, email: '', clientId: '', clientSecret: '' },
+        wise: { enabled: true, apiKey: '', profileId: '' },
+        veem: { enabled: false, apiKey: '', accountId: '' }
+      },
+      notifications: {
+        emailNotifications: true,
+        invoiceReminders: false,
+        paymentConfirmations: true,
+        weeklyReports: true
+      },
+      branding: {
+        primaryColor: '#059669',
+        secondaryColor: '#374151',
+        logoUrl: '',
+        favicon: ''
+      },
+      createdAt: '2024-03-22',
+      isActive: true
+    }
+  ]);
+
   const [projects, setProjects] = useState<Project[]>([
     {
       id: '1',
+      organizationId: '1',
       name: 'E-commerce Platform',
       client: 'TechCorp Inc.',
       description: 'Complete e-commerce solution with payment integration',
@@ -70,6 +140,7 @@ export function ProjectSetup() {
     },
     {
       id: '2',
+      organizationId: '1',
       name: 'Mobile App Development',
       client: 'StartupXYZ',
       description: 'Cross-platform mobile application',
@@ -86,6 +157,7 @@ export function ProjectSetup() {
     },
     {
       id: '3',
+      organizationId: '2',
       name: 'Website Redesign',
       client: 'Fashion Brand Co.',
       description: 'Complete website redesign and branding',
@@ -111,9 +183,10 @@ export function ProjectSetup() {
   ];
 
   const handleCreateProject = () => {
-    if (newProject.name && newProject.client && newProject.budget) {
+    if (newProject.name && newProject.client && newProject.budget && newProject.organizationId) {
       const project: Project = {
         id: Date.now().toString(),
+        organizationId: newProject.organizationId,
         name: newProject.name,
         client: newProject.client,
         description: newProject.description,
@@ -132,6 +205,7 @@ export function ProjectSetup() {
       setProjects([...projects, project]);
       setNewProject({
         name: '',
+        organizationId: '',
         client: '',
         description: '',
         budget: '',
@@ -149,6 +223,11 @@ export function ProjectSetup() {
 
   const handleDeleteProject = (id: string) => {
     setProjects(projects.filter(p => p.id !== id));
+  };
+
+  const getOrganizationName = (organizationId: string) => {
+    const org = organizations.find(o => o.id === organizationId);
+    return org ? org.name : 'Unknown Organization';
   };
 
   const getStatusColor = (status: string) => {
@@ -183,7 +262,8 @@ export function ProjectSetup() {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.client.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesOrganization = organizationFilter === 'all' || project.organizationId === organizationFilter;
+    return matchesSearch && matchesStatus && matchesOrganization;
   });
 
   const projectStats = {
@@ -279,6 +359,16 @@ export function ProjectSetup() {
           
           <div className="flex space-x-3">
             <select
+              value={organizationFilter}
+              onChange={(e) => setOrganizationFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            >
+              <option value="all">All Organizations</option>
+              {organizations.map(org => (
+                <option key={org.id} value={org.id}>{org.name}</option>
+              ))}
+            </select>
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
@@ -307,6 +397,22 @@ export function ProjectSetup() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Organization *
+              </label>
+              <select
+                value={newProject.organizationId}
+                onChange={(e) => setNewProject({ ...newProject, organizationId: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              >
+                <option value="">Select organization</option>
+                {organizations.map(org => (
+                  <option key={org.id} value={org.id}>{org.name}</option>
+                ))}
+              </select>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Project Name *
@@ -452,6 +558,9 @@ export function ProjectSetup() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Organization
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Project & Client
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -474,6 +583,14 @@ export function ProjectSetup() {
             <tbody className="divide-y divide-gray-200">
               {filteredProjects.map((project) => (
                 <tr key={project.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2">
+                      <Building2 className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {getOrganizationName(project.organizationId)}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{project.name}</p>
