@@ -9,7 +9,8 @@ import {
   Target,
   Settings,
   Monitor,
-  User as UserIcon
+  User as UserIcon,
+  Shield
 } from 'lucide-react';
 import { User } from '../../types';
 import { AdminView } from '../AdminDashboard';
@@ -31,6 +32,7 @@ export function AdminNavigation({ user, activeView, onViewChange, onLogout }: Ad
     { id: 'reports' as AdminView, label: 'Financial Reports', icon: FileBarChart },
     { id: 'organization' as AdminView, label: 'Organization', icon: Settings },
     { id: 'global' as AdminView, label: 'Global Settings', icon: Monitor },
+    { id: 'users' as AdminView, label: 'User Management', icon: Shield },
     { id: 'settings' as AdminView, label: 'User Settings', icon: UserIcon },
   ];
 

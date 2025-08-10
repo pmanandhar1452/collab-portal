@@ -148,6 +148,35 @@ export function useAuth() {
     }
   };
 
+  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      // Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // User will be automatically created in staff_members via trigger
+        // or handled in the auth state change listener
+        return true;
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
+    
+    setLoading(false);
+    return false;
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
@@ -227,6 +256,7 @@ export function useAuth() {
     user,
     loading,
     login,
+    register,
     signInWithGoogle,
     logout,
     updateUser,

@@ -9,6 +9,7 @@ import { FinancialReports } from './admin/FinancialReports';
 import { ProjectSetup } from './admin/ProjectSetup';
 import { OrganizationSetup } from './admin/OrganizationSetup';
 import { GlobalSettings } from './admin/GlobalSettings';
+import { AdminUserManagement } from './admin/AdminUserManagement';
 import { UserSettings } from './UserSettings';
 import { useAuth } from '../hooks/useAuth';
 
@@ -17,7 +18,7 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-export type AdminView = 'overview' | 'payments' | 'staff' | 'analytics' | 'reports' | 'projects' | 'organization' | 'global' | 'settings';
+export type AdminView = 'overview' | 'payments' | 'staff' | 'analytics' | 'reports' | 'projects' | 'organization' | 'global' | 'users' | 'settings';
 
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [activeView, setActiveView] = useState<AdminView>('overview');
@@ -43,6 +44,8 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
         return <GlobalSettings />;
       case 'settings':
         return <UserSettings user={user} onBack={() => setActiveView('overview')} onUpdateUser={updateUser} />;
+      case 'users':
+        return <AdminUserManagement />;
       default:
         return <AdminOverview />;
     }

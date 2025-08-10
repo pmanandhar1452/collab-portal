@@ -4,10 +4,11 @@ import { LogIn, Eye, EyeOff, Chrome } from 'lucide-react';
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
   onGoogleSignIn: () => Promise<void>;
+  onShowRegister: () => void;
   loading: boolean;
 }
 
-export function LoginForm({ onLogin, onGoogleSignIn, loading }: LoginFormProps) {
+export function LoginForm({ onLogin, onGoogleSignIn, onShowRegister, loading }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -134,6 +135,18 @@ export function LoginForm({ onLogin, onGoogleSignIn, loading }: LoginFormProps) 
               {isSubmitting ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <button
+                onClick={onShowRegister}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Create one here
+              </button>
+            </p>
+          </div>
 
           <div className="mt-8 pt-8 border-t border-gray-200">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Credentials:</h3>
