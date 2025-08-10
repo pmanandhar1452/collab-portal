@@ -98,7 +98,6 @@ export interface Organization {
     primaryColor: string;
     secondaryColor: string;
     logoUrl: string;
-    favicon: string;
   };
   createdAt: string;
   isActive: boolean;
