@@ -134,7 +134,9 @@ export function useAuth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.hostname === 'localhost' 
+            ? window.location.origin 
+            : 'https://collaborate.yaa.ai'
         }
       });
       if (error) throw error;
