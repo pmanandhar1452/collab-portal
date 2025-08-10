@@ -70,7 +70,15 @@ export function useAuth() {
         .single();
 
       if (staffMember) {
-        // User exists in staff_members, create User object
+        // User exists in staff_members, update user_id if needed and create User object
+        if (!staffMember.user_id && supabaseUser.id) {
+          // Link the auth user to the staff member record
+          await supabase
+            .from('staff_members')
+            .update({ user_id: supabaseUser.id })
+            .eq('id', staffMember.id);
+        }
+        
         const user: User = {
           id: staffMember.id,
           name: staffMember.name,

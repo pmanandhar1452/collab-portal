@@ -96,47 +96,35 @@ export function AdminUserManagement() {
       if (authError) {
         console.error('Auth error:', authError);
         if (authError.message.includes('already registered')) {
-          // User exists in auth but not in staff_members, let's try to link them
-          const { data: authUser, error: getUserError } = await supabase.auth.signInWithPassword({
+          // User exists in auth but not in staff_members
+          // Create staff member record without user_id (will be linked later via trigger or manual process)
+          const adminData = {
+            user_id: null, // Will be linked when user logs in
+            name: newAdminData.name,
             email: newAdminData.email,
-            password: newAdminData.password
-          });
-          
-          if (authUser.user) {
-            // Create staff member record for existing auth user
-            const adminData = {
-              user_id: authUser.user.id,
-              name: newAdminData.name,
-              email: newAdminData.email,
-              phone: '',
-              department: 'Administration',
-              role: 'admin',
-              hourly_rate: 0,
-              total_earned: 0,
-              hours_this_month: 0,
-              status: 'active',
-              avatar: '',
-              access_control: {
-                organizations: [],
-                projects: [],
-                restrictToAssignedOnly: false
-              },
-              joined_at: new Date().toISOString().split('T')[0]
-            };
+            phone: '',
+            department: 'Administration',
+            role: 'admin',
+            hourly_rate: 0,
+            total_earned: 0,
+            hours_this_month: 0,
+            status: 'active',
+            avatar: '',
+            access_control: {
+              organizations: [],
+              projects: [],
+              restrictToAssignedOnly: false
+            },
+            joined_at: new Date().toISOString().split('T')[0]
+          };
 
-            const { error: createError } = await supabase
-              .from('staff_members')
-              .insert([adminData]);
+          const { error: createError } = await supabase
+            .from('staff_members')
+            .insert([adminData]);
 
-            if (createError) {
-              console.error('Staff creation error:', createError);
-              throw new Error('Failed to create staff member record');
-            }
-
-            // Sign out the temporary session
-            await supabase.auth.signOut();
-          } else {
-            throw new Error('User exists in auth but cannot be accessed');
+          if (createError) {
+            console.error('Staff creation error:', createError);
+            throw new Error('Failed to create staff member record');
           }
         } else {
           throw authError;
@@ -232,10 +220,16 @@ export function AdminUserManagement() {
     setSuccess('');
     
     try {
-      // This would require admin privileges to list all auth users
-      // For now, we'll just refresh the staff members list
+      // Refresh the staff members list and attempt to link any unlinked records
       await refetch();
-      setSuccess('User list refreshed');
+      
+      // Check for staff members without user_id that might need linking
+      const unlinkedStaff = staffMembers.filter(staff => !staff.userId);
+      if (unlinkedStaff.length > 0) {
+        setSuccess(`User list refreshed. Found ${unlinkedStaff.length} users that may need linking when they log in.`);
+      } else {
+        setSuccess('User list refreshed successfully');
+      }
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('Failed to sync users');
